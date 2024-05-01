@@ -459,6 +459,14 @@ static int sx126x_lora_init(const struct device *dev)
 		LOG_ERR("Failed to initialize SX12xx common");
 		return ret;
 	}
+	
+	while (true)
+	{
+		uint32_t rand = SX126xGetRandom();
+		LOG_ERR("Read the number %" PRIu32, rand);
+		k_sleep(K_MSEC(200));
+	}
+	
 
 	return 0;
 }
@@ -474,4 +482,4 @@ static const struct lora_driver_api sx126x_lora_api = {
 
 DEVICE_DT_INST_DEFINE(0, &sx126x_lora_init, NULL, &dev_data,
 		      &dev_config, POST_KERNEL, CONFIG_LORA_INIT_PRIORITY,
-		      &sx126x_lora_api);
+		&sx126x_lora_api);
