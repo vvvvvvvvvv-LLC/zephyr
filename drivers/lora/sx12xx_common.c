@@ -172,6 +172,7 @@ static void sx12xx_ev_tx_timed_out(void)
 int sx12xx_lora_send(const struct device *dev, uint8_t *data,
 		     uint32_t data_len)
 {
+	LOG_ERR("sx12xx_lora_send");
 	struct k_poll_signal done = K_POLL_SIGNAL_INITIALIZER(done);
 	struct k_poll_event evt = K_POLL_EVENT_INITIALIZER(
 		K_POLL_TYPE_SIGNAL,
@@ -197,7 +198,7 @@ int sx12xx_lora_send(const struct device *dev, uint8_t *data,
 				   dev_data.tx_cfg.coding_rate,
 				   dev_data.tx_cfg.preamble_len,
 				   0, data_len, true);
-	LOG_DBG("Expected air time of %d bytes = %dms", data_len, air_time);
+	LOG_ERR("Expected air time of %d bytes = %dms", data_len, air_time);
 
 	/* Wait for the packet to finish transmitting.
 	 * Use twice the tx duration to ensure that we are actually detecting
@@ -212,12 +213,14 @@ int sx12xx_lora_send(const struct device *dev, uint8_t *data,
 			k_poll(&evt, 1, K_FOREVER);
 		}
 	}
+	LOG_ERR("Packet transmission complete!");
 	return ret;
 }
 
 int sx12xx_lora_send_async(const struct device *dev, uint8_t *data,
 			   uint32_t data_len, struct k_poll_signal *async)
 {
+	LOG_ERR("sx12xx_lora_send_async");
 	/* Ensure available, freed by sx12xx_ev_tx_done */
 	if (!modem_acquire(&dev_data)) {
 		return -EBUSY;
