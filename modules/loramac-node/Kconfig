@@ -7,6 +7,13 @@
 config ZEPHYR_LORAMAC_NODE_MODULE
 	bool
 
+config LORAMAC_BUG_21_WORKAROUND
+	bool "Workaround for LoRaMac bug 21"
+	help
+	  For some unknown reason, unless you call RegionNextChannel twice, the first time you attempt
+	  an OTAA join, the join request will consistently fail. Unclear if there are negative side effects to
+	  this workaround. It is also possible this is actually a bug in the network server config.
+
 config HAS_SEMTECH_RADIO_DRIVERS
 	bool "Semtech LoRa Radio Drivers"
 	help
