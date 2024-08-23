@@ -46,6 +46,9 @@ Kernel
   :kconfig:option:`CONFIG_HEAP_MEM_POOL_IGNORE_MIN` option has been introduced (which defaults
   being disabled).
 
+* STM32H7 and STM32F7 should now activate the cache (Icache and Dcache) by setting explicitly
+  the  ``CONFIG_CACHE_MANAGEMENT`` to ``y``.
+
 Boards
 ******
 
@@ -638,7 +641,7 @@ Shell
 * :kconfig:option:`CONFIG_SHELL_BACKEND_SERIAL_API` now does not automatically default to
   :kconfig:option:`CONFIG_SHELL_BACKEND_SERIAL_API_ASYNC` when
   :kconfig:option:`CONFIG_UART_ASYNC_API` is enabled, :kconfig:option:`CONFIG_SHELL_ASYNC_API`
-  also has to be enabled in order to use the asynchronous serial shell (:github: `68475`).
+  also has to be enabled in order to use the asynchronous serial shell (:github:`68475`).
 
 ZBus
 ====
