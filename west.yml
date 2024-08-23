@@ -23,6 +23,8 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: babblesim
       url-base: https://github.com/BabbleSim
+    - name: vvvvvvvvvv
+      url-base: https://github.com/vvvvvvvvvv-llc
 
   group-filter: [-babblesim, -optional]
 
@@ -271,6 +273,7 @@ manifest:
         - fs
       revision: 408c16a909dd6cf128874a76f21c793798c9e423
     - name: loramac-node
+      remote: vvvvvvvvvv
       revision: 81e2c1c7de719e44d42284a394ac520323118365
       path: modules/lib/loramac-node
     - name: lvgl
