@@ -17,6 +17,7 @@
 #include <zephyr/drivers/mipi_dbi.h>
 #include <zephyr/pm/device.h>
 #include <zephyr/sys/byteorder.h>
+#include <zephyr/drivers/display.h>
 
 #define LOG_LEVEL CONFIG_DISPLAY_LOG_LEVEL
 #include <zephyr/logging/log.h>
@@ -131,7 +132,6 @@ static void st7789v_set_mem_area(const struct device *dev, const uint16_t x, con
 static int st7789v_write(const struct device *dev, const uint16_t x, const uint16_t y,
 			 const struct display_buffer_descriptor *desc, const void *buf)
 {
-	const uint8_t *write_data_start = (uint8_t *)buf;
 	const struct st7789v_config *config = dev->config;
 	struct display_buffer_descriptor mipi_desc;
 	const uint8_t *write_data_start = (uint8_t *)buf;
@@ -171,9 +171,6 @@ static int st7789v_write(const struct device *dev, const uint16_t x, const uint1
 	st7789v_transmit(dev, ST7789V_CMD_RAMWR, NULL, 0);
 
 	for (uint16_t write_cnt = 0U; write_cnt < nbr_of_writes; ++write_cnt) {
-		st7789v_transmit(dev, write_cnt == 0U ? ST7789V_CMD_RAMWR : ST7789V_CMD_NONE,
-				 (void *)write_data_start,
-				 desc->width * ST7789V_PIXEL_SIZE * write_h);
 		mipi_dbi_write_display(config->mipi_dbi, &config->dbi_config, write_data_start,
 				       &mipi_desc, pixfmt);
 
@@ -402,45 +399,6 @@ static const struct display_driver_api st7789v_api = {
 	.set_orientation = st7789v_set_orientation,
 };
 
-#define ST7789V_WORD_SIZE(inst) COND_CODE_1(DT_INST_NODE_HAS_PROP(inst, cmd_data_gpios), (8), (9))
-
-#define ST7789V_INIT(inst)                                                                         \
-	static const struct st7789v_config st7789v_config_##inst = {                               \
-		.bus = SPI_DT_SPEC_INST_GET(                                                       \
-			inst, SPI_OP_MODE_MASTER | SPI_WORD_SET(ST7789V_WORD_SIZE(inst)), 0),      \
-		.cmd_data_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, cmd_data_gpios, {}),               \
-		.reset_gpio = GPIO_DT_SPEC_INST_GET_OR(inst, reset_gpios, {}),                     \
-		.vcom = DT_INST_PROP(inst, vcom),                                                  \
-		.gctrl = DT_INST_PROP(inst, gctrl),                                                \
-		.vdv_vrh_enable =                                                                  \
-			(DT_INST_NODE_HAS_PROP(inst, vrhs) && DT_INST_NODE_HAS_PROP(inst, vdvs)),  \
-		.vrh_value = DT_INST_PROP_OR(inst, vrhs, 0),                                       \
-		.vdv_value = DT_INST_PROP_OR(inst, vdvs, 0),                                       \
-		.mdac = DT_INST_PROP(inst, mdac),                                                  \
-		.gamma = DT_INST_PROP(inst, gamma),                                                \
-		.colmod = DT_INST_PROP(inst, colmod),                                              \
-		.lcm = DT_INST_PROP(inst, lcm),                                                    \
-		.porch_param = DT_INST_PROP(inst, porch_param),                                    \
-		.cmd2en_param = DT_INST_PROP(inst, cmd2en_param),                                  \
-		.pwctrl1_param = DT_INST_PROP(inst, pwctrl1_param),                                \
-		.pvgam_param = DT_INST_PROP(inst, pvgam_param),                                    \
-		.nvgam_param = DT_INST_PROP(inst, nvgam_param),                                    \
-		.ram_param = DT_INST_PROP(inst, ram_param),                                        \
-		.rgb_param = DT_INST_PROP(inst, rgb_param),                                        \
-		.width = DT_INST_PROP(inst, width),                                                \
-		.height = DT_INST_PROP(inst, height),                                              \
-	};                                                                                         \
-                                                                                                   \
-	static struct st7789v_data st7789v_data_##inst = {                                         \
-		.x_offset = DT_INST_PROP(inst, x_offset),                                          \
-		.y_offset = DT_INST_PROP(inst, y_offset),                                          \
-	};                                                                                         \
-                                                                                                   \
-	PM_DEVICE_DT_INST_DEFINE(inst, st7789v_pm_action);                                         \
-                                                                                                   \
-	DEVICE_DT_INST_DEFINE(inst, &st7789v_init, PM_DEVICE_DT_INST_GET(inst),                    \
-			      &st7789v_data_##inst, &st7789v_config_##inst, POST_KERNEL,           \
-			      CONFIG_DISPLAY_INIT_PRIORITY, &st7789v_api);
 #define ST7789V_WORD_SIZE(inst)                                                                    \
 	((DT_INST_PROP(inst, mipi_mode) == MIPI_DBI_MODE_SPI_4WIRE) ? SPI_WORD_SET(8)              \
 								    : SPI_WORD_SET(9))
@@ -474,6 +432,7 @@ static const struct display_driver_api st7789v_api = {
 	static struct st7789v_data st7789v_data_##inst = {                                         \
 		.x_offset = DT_INST_PROP(inst, x_offset),                                          \
 		.y_offset = DT_INST_PROP(inst, y_offset),                                          \
+		.orientation = DISPLAY_ORIENTATION_NORMAL,                                         \
 	};                                                                                         \
                                                                                                    \
 	PM_DEVICE_DT_INST_DEFINE(inst, st7789v_pm_action);                                         \
